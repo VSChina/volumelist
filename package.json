@@ -1,9 +1,9 @@
 {
   "name": "volumelist",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "List volumes",
   "main": "build/index.js",
-  "types": "src/index.ts",
+  "types": "build/index.d.ts",
   "scripts": {
     "compile": "tsc -p ."
   },
