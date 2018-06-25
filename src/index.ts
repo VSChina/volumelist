@@ -32,7 +32,7 @@ async function windowsRun() {
 }
 
 async function unixRun() {
-  const cmd = spawn('df', ['-h'], {shell: true});
+  const cmd = spawn('mount', ['-t', 'drvfs'], {shell: true});
   let output = '';
 
   return new Promise(
