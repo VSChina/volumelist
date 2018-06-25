@@ -1,0 +1,22 @@
+{
+  "name": "volumelist",
+  "version": "0.1.0",
+  "description": "List volumes",
+  "main": "build/index.js",
+  "scripts": {
+    "compile": "tsc -p ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sneezry/volumelist.git"
+  },
+  "keywords": [
+    "volume"
+  ],
+  "author": "Li Zhe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sneezry/volumelist/issues"
+  },
+  "homepage": "https://github.com/Sneezry/volumelist#readme"
+}
