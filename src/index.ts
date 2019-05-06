@@ -52,10 +52,10 @@ function parseVolumeUnix(output: string) {
   const lines = output.split(/[\n\r]+/);
   const volumes: {path: string, name?: string}[] = [];
   for (const line of lines) {
-    const volumeMatches = line.match(/(\/[\S]*).*?(\[.*?\])?\s*$/);
+    const volumeMatches = line.match(/on (\/[\S]*).*?(\[(.*?)\])?\s*$/);
     if (volumeMatches) {
       const path = volumeMatches[1];
-      const name = volumeMatches[2];
+      const name = volumeMatches[3];
       volumes.push({path, name});
     }
   }
