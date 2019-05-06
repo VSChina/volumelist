@@ -1,14 +1,29 @@
-import {spawn} from 'child_process';
+import {spawn,execSync} from 'child_process';
 import * as os from 'os';
 
 const platform = os.platform();
 
+function parseVolumeWindows(output: string) {
+  const lines = output.split(/[\n\r]+/);
+  const volumes: {path: string, name?: string}[] = [];
+  for (const line of lines) {
+    const volumeMatches = line.match(/^([A-Z]\:)\s*(.*?)?\s*$/);
+    if (volumeMatches) {
+      const path = volumeMatches[1];
+      const name = volumeMatches[2];
+      volumes.push({path, name});
+    }
+  }
+
+  return volumes;
+}
+
 async function windowsRun() {
-  const cmd = spawn('wmic', ['logicaldisk', 'get', 'name'], {shell: true});
+  const cmd = spawn('wmic', ['logicaldisk', 'get', 'name,VolumeName'], {shell: true});
   let output = '';
 
   return new Promise(
-      (resolve: (value: string[]) => void, reject: (reason: Error) => void) => {
+      (resolve: (value: {path: string, name?: string}[]) => void, reject: (reason: Error) => void) => {
         cmd.stdout.on('data', (data) => {
           output += data;
         });
@@ -18,25 +33,42 @@ async function windowsRun() {
             return reject(new Error(`get volume failed: ${code}`));
           }
 
-          const volumeMatches = output.match(/^([A-Z]\:)/mg);
-          const volumes: string[] = [];
-          if (volumeMatches) {
-            for (const volume of volumeMatches) {
-              volumes.push(volume);
-            }
-          }
+          const volumes = parseVolumeWindows(output);
 
           return resolve(volumes);
         });
       });
+}
+
+function windowsRunSync() {
+  const output = execSync('wmic logicaldisk get name,VolumeName', {
+    encoding: 'utf8'
+  });
+
+  return parseVolumeWindows(output);
+}
+
+function parseVolumeUnix(output: string) {
+  const lines = output.split(/[\n\r]+/);
+  const volumes: {path: string, name?: string}[] = [];
+  for (const line of lines) {
+    const volumeMatches = line.match(/(\/[\S]*).*?(\[.*?\])?\s*$/);
+    if (volumeMatches) {
+      const path = volumeMatches[1];
+      const name = volumeMatches[2];
+      volumes.push({path, name});
+    }
+  }
+
+  return volumes;
 }
 
 async function unixRun() {
-  const cmd = spawn('mount', ['-t', 'drvfs'], {shell: true});
+  const cmd = spawn('mount', ['-l', '-t', 'ext3,ext4,ntfs,vfat,exfat,fuseblk,drvfs'], {shell: true});
   let output = '';
 
   return new Promise(
-      (resolve: (value: string[]) => void, reject: (reason: Error) => void) => {
+      (resolve: (value: {path: string, name?: string}[]) => void, reject: (reason: Error) => void) => {
         cmd.stdout.on('data', (data) => {
           output += data;
         });
@@ -46,23 +78,39 @@ async function unixRun() {
             return reject(new Error(`get volume failed: ${code}`));
           }
 
-          const volumeMatches = output.match(/(\/[\S]*)/mg);
-          const volumes: string[] = [];
-          if (volumeMatches) {
-            for (const volume of volumeMatches) {
-              volumes.push(volume);
-            }
-          }
+          const volumes = parseVolumeUnix(output);
 
           return resolve(volumes);
         });
       });
 }
 
-export async function volumelist() {
-  if (platform === 'win32') {
-    return await windowsRun();
-  }
+function unixRunSync() {
+  const output = execSync('mount -l -t ext3,ext4,ntfs,vfat,exfat,fuseblk,drvfs', {
+    encoding: 'utf8'
+  });
 
-  return await unixRun();
+  return parseVolumeUnix(output);
+}
+
+export async function volumelistName() {
+  return platform === 'win32' ?
+      await windowsRun() :
+      await unixRun();
+}
+
+export function volumelistNameSync() {
+  return platform === 'win32' ?
+      windowsRunSync() :
+      unixRunSync();
+}
+
+export async function volumelist() {
+  const list = await volumelistName();
+  return list.map(v => v.path);
+}
+
+export function volumelistSync() {
+  const list = volumelistNameSync();
+  return list.map(v => v.path);
 }

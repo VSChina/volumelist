@@ -1,3 +1,4 @@
-const volumelist = require('../build/index.js').volumelist;
+const vl = require('../build/index.js');
 
-volumelist().then(console.log);
+vl.volumelist().then(console.log);
+console.log(vl.volumelistNameSync());
