@@ -93,16 +93,65 @@ function unixRunSync() {
   return parseVolumeUnix(output);
 }
 
+function parseVolumeDarwin(output: string) {
+  const lines = output.split(/[\n\r]+/);
+  const volumes: {path: string, name?: string}[] = [];
+  for (const line of lines) {
+    const volumeMatches = line.match(/on (\/.*?([^\/]+?))\s*\(/);
+    if (volumeMatches) {
+      const path = volumeMatches[1];
+      const name = volumeMatches[2];
+      volumes.push({path, name});
+    }
+  }
+
+  return volumes;
+}
+
+async function darwinRun() {
+  const cmd = spawn('mount', ['-t', 'ext3,ext4,ntfs,vfat,exfat,fuseblk,drvfs'], {shell: true});
+  let output = '';
+
+  return new Promise(
+      (resolve: (value: {path: string, name?: string}[]) => void, reject: (reason: Error) => void) => {
+        cmd.stdout.on('data', (data) => {
+          output += data;
+        });
+
+        cmd.on('close', (code) => {
+          if (code) {
+            return reject(new Error(`get volume failed: ${code}`));
+          }
+
+          const volumes = parseVolumeDarwin(output);
+
+          return resolve(volumes);
+        });
+      });
+}
+
+function darwinRunSync() {
+  const output = execSync('mount -t ext3,ext4,ntfs,vfat,exfat,fuseblk,drvfs', {
+    encoding: 'utf8'
+  });
+
+  return parseVolumeDarwin(output);
+}
+
 export async function volumelistName() {
   return platform === 'win32' ?
       await windowsRun() :
-      await unixRun();
+        platform === 'darwin' ?
+        await darwinRun() :
+        await unixRun();
 }
 
 export function volumelistNameSync() {
   return platform === 'win32' ?
       windowsRunSync() :
-      unixRunSync();
+        platform === 'darwin' ?
+        darwinRunSync() :
+        unixRunSync();
 }
 
 export async function volumelist() {
