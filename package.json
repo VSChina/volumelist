@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Sneezry/volumelist.git"
+    "url": "git+https://github.com/VSChina/volumelist.git"
   },
   "keywords": [
     "volume"
@@ -17,7 +17,7 @@
   "author": "Zhe Li",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Sneezry/volumelist/issues"
+    "url": "https://github.com/VSChina/volumelist/issues"
   },
-  "homepage": "https://github.com/Sneezry/volumelist#readme"
+  "homepage": "https://github.com/VSChina/volumelist#readme"
 }
